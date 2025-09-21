@@ -114,8 +114,10 @@ router.post('/start-application', (req, res) => {
         // Generate session token
         const { v4: uuidv4 } = require('uuid');
         const sessionToken = uuidv4();
-        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
+        // Line I added to fix this
+        // Convert expiration date to MySQL format
+       const expiresAt = toMySQLDate(new Date(Date.now() + 24 * 60 * 60 * 1000)); // 24 hours
         db.query(`
             INSERT INTO application_sessions (
                 session_token, 
@@ -125,7 +127,7 @@ router.post('/start-application', (req, res) => {
                 expires_at, 
                 created_at
             ) VALUES (?, 0, ?, ?, ?, NOW())
-        `, [sessionToken, userAgent, ipAddress, expiresAt.toISOString()], (err, result) => {
+        `, [sessionToken, userAgent, ipAddress, expiresAt], (err, result) => {
             if (err) {
                 console.error('Session creation error:', err);
                 return res.status(500).json({
@@ -138,7 +140,7 @@ router.post('/start-application', (req, res) => {
                 success: true,
                 data: {
                     sessionToken,
-                    expiresAt: expiresAt.toISOString(),
+                    expiresAt: expiresAt, // New code. already in MySQL format
                     message: 'Application session started successfully'
                 }
             });
