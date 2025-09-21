@@ -38,7 +38,8 @@ const Dashboard = {
     // Fetch user profile data from API
     async fetchProfileData() {
         try {
-            const response = await Utils.apiCall('/api/profile/dashboard');
+            // Made changes by removing dashboard after profile api
+            const response = await Utils.apiCall('/api/profile/');
             this.profileData = response.data;
         } catch (error) {
             console.error('Error fetching profile data:', error);
