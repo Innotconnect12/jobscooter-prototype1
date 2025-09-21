@@ -5,6 +5,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const AIService = require('../services/ai-service');
 const AccountService = require('../services/account-service');
+const EmailService = require('../services/email-service');
 const router = express.Router();
 
 // Initialize services
@@ -219,6 +220,19 @@ router.post('/step1/confirm-and-create-account', async (req, res) => {
 
         console.log('✅ Account created successfully:', accountResult.user.username);
 
+        // Send welcome email asynchronously. This is code I have added
+        try {
+            await EmailService.sendWelcomeEmail(
+                accountResult.user.email,
+                accountResult.credentials,
+                accountResult. user.verificationToken // ensure you generate/store this token
+            );
+            accountResult.emailSent = true;
+        } catch (err) {
+            console.error('❌ Failed to send welcome email', err.message);
+            accountResult.emailSent = false;
+        }
+
         res.status(201).json({
             success: true,
             step: 1,
@@ -298,6 +312,19 @@ router.post('/step1/manual-entry', async (req, res) => {
         const token = accountService.generateJWTToken(accountResult.user);
 
         console.log('✅ Manual account created successfully:', accountResult.user.username);
+
+        // Send welcome email asynchronously. Code I added
+        try {
+            await EmailService.sendWelcomeEmail(
+                accountResult.user.email,
+                accountResult.credentials,
+                accountResult.user.verificationToken,
+            );
+            accountResult.emailSent = true;
+        } catch (err) {
+            console.error('❌ Failed to send welcome email:', err.message);
+            accountResult.emailSent = false;
+        }
 
         res.status(201).json({
             success: true,
