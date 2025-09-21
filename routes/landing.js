@@ -1,6 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
+// Function I addded to update to MySQL format
+function toMySQLDate(date) {
+    return date.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+// Example usage
+const expiresAt = toMySQLDate(new Date(Date.now() + 24 * 60 * 60 * 1000)); // 1 day expiry
+
+
 // Middleware to get database
 const getDb = (req) => req.app.locals.db;
 
