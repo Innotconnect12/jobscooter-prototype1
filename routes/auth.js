@@ -40,24 +40,24 @@ const authenticateToken = (req, res, next) => {
 
 // Create account from extracted ID data
 router.post('/create-account', async (req, res) => {
-//     try {
-//         const {
-//             first_name,
-//             surname,
-//             email,
-//             phone,
-//             country,
-//             id_number,
-//             id_extraction_confidence = 0.8
-//         } = req.body;
-//
-//         // Validate required fields
-//         if (!first_name || !surname || !email || !phone || !country || !id_number) {
-//             return res.status(400).json({
-//                 error: 'Missing required fields',
-//                 required: ['first_name', 'surname', 'email', 'phone', 'country', 'id_number']
-//             });
-//        }
+    try {
+        const {
+            first_name,
+            surname,
+            email,
+            phone,
+            country,
+            id_number,
+            id_extraction_confidence = 0.8
+        } = req.body;
+
+        // Validate required fields
+        if (!first_name || !surname || !email || !phone || !country || !id_number) {
+            return res.status(400).json({
+                error: 'Missing required fields',
+                required: ['first_name', 'surname', 'email', 'phone', 'country', 'id_number']
+            });
+        }
 
         const db = getDb(req);
 
@@ -142,17 +142,17 @@ router.post('/create-account', async (req, res) => {
         const token = generateToken(user);
 
         // Send email with login credentials
-        // const nodemailer = require('nodemailer');
-        //
-        // const transporter = nodemailer.createTransport({
-        //     host: process.env.SMTP_HOST,
-        //     port: parseInt(process.env.SMTP_PORT, 10),
-        //     secure: false,
-        //     auth: {
-        //         user: process.env.SMTP_USER,
-        //         pass: process.env.SMTP_PASS
-        //     }
-        // });
+        const nodemailer = require('nodemailer');
+
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT, 10),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
 
         const mailOptions = {
             from: process.env.SMTP_FROM,
