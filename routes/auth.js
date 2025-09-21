@@ -39,47 +39,6 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Create account from extracted ID data
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
-const router = express.Router();
-
-// Middleware to get database
-const getDb = (req) => req.app.locals.db;
-
-// Generate JWT token
-const generateToken = (user) => {
-    return jwt.sign(
-        {
-            id: user.id,
-            username: user.username,
-            email: user.email
-        },
-        process.env.JWT_SECRET || 'fallback_secret_key',
-        { expiresIn: '7d' }
-    );
-};
-
-// Middleware to authenticate JWT token
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ error: 'Access token required' });
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key', (err, user) => {
-        if (err) {
-            return res.status(403).json({ error: 'Invalid or expired token' });
-        }
-        req.user = user;
-        next();
-    });
-};
-
-// Create account from extracted ID data
 // router.post('/create-account', async (req, res) => {
 //     try {
 //         const {
