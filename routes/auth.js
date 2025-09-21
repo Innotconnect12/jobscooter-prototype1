@@ -98,6 +98,24 @@ const authenticateToken = (req, res, next) => {
 //                 error: 'Missing required fields',
 //                 required: ['first_name', 'surname', 'email', 'phone', 'country', 'id_number']
 //             });
+router.post('/create-account', async (req, res) => {
+    try {
+        const {
+            first_name,
+            surname,
+            email,
+            phone,
+            country,
+            id_number,
+            id_extraction_confidence = 0.8
+        } = req.body;
+
+        // Validate required fields
+        if (!first_name || !surname || !email || !phone || !country || !id_number) {
+            return res.status(400).json({
+                error: 'Missing required fields',
+                required: ['first_name', 'surname', 'email', 'phone', 'country', 'id_number']
+            });
         }
 
         const db = getDb(req);
