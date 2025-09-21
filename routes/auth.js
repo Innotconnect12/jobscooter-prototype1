@@ -57,7 +57,7 @@ router.post('/create-account', async (req, res) => {
 //                 error: 'Missing required fields',
 //                 required: ['first_name', 'surname', 'email', 'phone', 'country', 'id_number']
 //             });
-        }
+//        }
 
         const db = getDb(req);
 
