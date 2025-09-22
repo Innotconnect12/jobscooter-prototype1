@@ -1,31 +1,31 @@
 require('dotenv').config();
-const axios = require('axios');
+const fs = require('fs');
 const path = require('path');
-const fs = require('fs'); 
-const FormData = require('form-data');
+const { AffindaAPI, AffindaCredential } = require('@affinda/affinda');
 
 class AffindaService {
     constructor() {
-        this.apiKey = process.env.AFFINDA_API_KEY;
-        this.baseUrl = 'https://api.affinda.com/api/v3'; // adjust if needed
+        const credential = new AffindaCredential(process.env.AFFINDA_API_KEY);
+        this.client = new AffindaAPI(credential);
+        this.workspaceId = process.env.WORKSPACE_ID;
     }
 
     async processIDDocument(filePath) {
         try {
-            const formData = new FormData();
-            formData.append('file', fs.createReadStream(filePath));
+            const fileStream = fs.createReadStream(filePath);
+            const fileName = path.basename(filePath);
 
-            const response = await axios.post(`${this.baseUrl}/id_documents`, formData, {
-                headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
-                    ...formData.getHeaders()
-                }
+            const doc = await this.client.createDocument({
+                file: fileStream,
+                workspace: this.workspaceId,
+                fileName
             });
 
+            // Affinda response parsing
             return {
                 success: true,
-                extractedData: response.data,
-                confidence: response.data.confidence || 0.85
+                extractedData: doc.data || {},
+                confidence: doc.data?.confidence || 0.85
             };
         } catch (error) {
             console.error('Affinda ID extraction error:', error.response?.data || error.message);
@@ -35,20 +35,19 @@ class AffindaService {
 
     async processCertificate(filePath) {
         try {
-            const formData = new FormData();
-            formData.append('file', fs.createReadStream(filePath));
+            const fileStream = fs.createReadStream(filePath);
+            const fileName = path.basename(filePath);
 
-            const response = await axios.post(`${this.baseUrl}/certificates`, formData, {
-                headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
-                    ...formData.getHeaders()
-                }
+            const doc = await this.client.createDocument({
+                file: fileStream,
+                workspace: this.workspaceId,
+                fileName
             });
 
             return {
                 success: true,
-                certificateData: response.data,
-                confidence: response.data.confidence || 0.8
+                certificateData: doc.data || {},
+                confidence: doc.data?.confidence || 0.8
             };
         } catch (error) {
             console.error('Affinda certificate extraction error:', error.response?.data || error.message);
