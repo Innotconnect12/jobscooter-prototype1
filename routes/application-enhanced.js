@@ -112,7 +112,7 @@ router.post('/step1/process-id', upload.single('id_document'), async (req, res) 
         const db = getDb(req);
 
         // Process ID document with AI
-        console.log('🤖 Processing ID document with AI...');
+        console.log('🤖 Processing ID document with Affinda...');
         const aiResult = await affindaService.processIDDocument(filePath);
         
         // Clean up ID file immediately for security
