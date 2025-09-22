@@ -21,12 +21,24 @@ class AffindaService {
                 fileName
             });
 
-            // Affinda response parsing
+            const fields = doc.data?.extractedFields || {};
+
+            // Defensive mapping for ID and Passport
+            const mappedData = {
+                first_name: fields.firstName || fields.names || '',
+                surname: fields.lastName || fields.surname || '',
+                id_number: fields.idNumber || fields.id_number || '',
+                country: fields.nationality || 'South Africa',
+                date_of_birth: fields.dateOfBirth || fields.inferredDateOfBirth || '',
+                gender: fields.gender || fields.inferredGender || fields.sex || ''
+            };
+
             return {
                 success: true,
-                extractedData: doc.data || {},
+                extractedData: mappedData,
                 confidence: doc.data?.confidence || 0.85
             };
+
         } catch (error) {
             console.error('Affinda ID extraction error:', error.response?.data || error.message);
             return { success: false, error: error.message };
@@ -46,9 +58,10 @@ class AffindaService {
 
             return {
                 success: true,
-                certificateData: doc.data || {},
+                certificateData: doc.data?.extractedFields || {},
                 confidence: doc.data?.confidence || 0.8
             };
+
         } catch (error) {
             console.error('Affinda certificate extraction error:', error.response?.data || error.message);
             return { success: false, error: error.message };
