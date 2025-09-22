@@ -48,7 +48,7 @@
     "nodemailer": "^7.0.6",
     "redis": "^5.8.2",
     "@affinda/affinda": "^7.6.1",
-    "form-data": "^4.0.4""
+    "form-data": "^4.0.4"
   },
   "engines": {
     "node": "v22.19.0"
