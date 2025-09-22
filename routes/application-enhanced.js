@@ -362,36 +362,42 @@ router.post('/step1/manual-entry', async (req, res) => {
 router.get('/verify-email', async (req, res) => {
     try {
         const { token } = req.query;
-
-        if (!token) {
-            return res.status(400).json({
-                error: 'Verification token is required'
-            });
-        }
+        if (!token) return res.status(400).json({ error: 'Verification token is required' });
 
         const db = getDb(req);
+
+        // Call account service to verify token
         const result = await accountService.verifyEmailToken(token, db);
 
         if (!result.success) {
-            return res.status(400).json({
-                error: 'Invalid or expired verification token'
-            });
+            return res.status(400).json({ error: 'Invalid or expired verification token' });
         }
+
+        // ✅ Mark email as verified and delete token
+        await new Promise((resolve, reject) => {
+            const sql = `
+                UPDATE users
+                SET email_verified = 1, verification_token = NULL, updated_at = NOW()
+                WHERE id = ?
+            `;
+            db.query(sql, [result.user.id], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
 
         console.log('✅ Email verified successfully for user:', result.user.email);
 
+        // Respond with a friendly message for frontend
         res.json({
             success: true,
             message: 'Email verified successfully! You can now login and continue your application.',
-            user: result.user,
             redirectTo: '/login'
         });
 
     } catch (error) {
         console.error('Email verification error:', error);
-        res.status(400).json({
-            error: error.message || 'Failed to verify email'
-        });
+        res.status(400).json({ error: error.message || 'Failed to verify email' });
     }
 });
 
