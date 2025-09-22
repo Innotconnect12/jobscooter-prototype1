@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const AIService = require('../services/ai-service');
 const AccountService = require('../services/account-service');
 const EmailService = require('../services/email-service');
+const verificationToken = uuidv4(); // generate a unique token
 const router = express.Router();
 
 // Initialize services
