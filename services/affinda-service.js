@@ -2,6 +2,7 @@ require('dotenv').config();
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs'); 
+const FormData = require('form-data');
 
 class AffindaService {
     constructor() {
