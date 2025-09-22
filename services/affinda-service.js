@@ -19,7 +19,7 @@ class AffindaService {
                 file: fileStream,
                 workspace: this.workspaceId,
                 fileName,
-                documentType: "IDAndPassport"
+                //documentType: "IDAndPassport"
             });
 
             const fields = doc.data?.extractedFields || {};
@@ -55,7 +55,7 @@ class AffindaService {
                 file: fileStream,
                 workspace: this.workspaceId,
                 fileName,
-                documentType: "Certificate"
+                //documentType: "Certificate"
             });
 
             return {
