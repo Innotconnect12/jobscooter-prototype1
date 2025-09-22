@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const AIService = require('../services/ai-service');
-const AffindaService = require(../services/affinda-service);
+const AffindaService = require('../services/affinda-service');
 const affindaService = new AffindaService();
 const router = express.Router();
 
