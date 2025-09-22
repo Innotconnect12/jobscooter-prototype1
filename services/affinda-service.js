@@ -18,19 +18,20 @@ class AffindaService {
             const doc = await this.client.createDocument({
                 file: fileStream,
                 workspace: this.workspaceId,
-                fileName
+                fileName,
+                documentType: "IDAndPassport"
             });
 
             const fields = doc.data?.extractedFields || {};
 
             // Defensive mapping for ID and Passport
             const mappedData = {
-                first_name: fields.firstName || fields.names || '',
+                first_name: fields.firstName || fields.givenNames || '',
                 surname: fields.lastName || fields.surname || '',
-                id_number: fields.idNumber || fields.id_number || '',
-                country: fields.nationality || 'South Africa',
-                date_of_birth: fields.dateOfBirth || fields.inferredDateOfBirth || '',
-                gender: fields.gender || fields.inferredGender || fields.sex || ''
+                id_number: fields.idNumber || fields.identityNumber || '',
+                country: fields.nationality || fields.countryCode || '',
+                date_of_birth: fields.dateOfBirth || '',
+                gender: fields.sex || ''
             };
 
             return {
@@ -53,7 +54,8 @@ class AffindaService {
             const doc = await this.client.createDocument({
                 file: fileStream,
                 workspace: this.workspaceId,
-                fileName
+                fileName,
+                documentType: "Certificate"
             });
 
             return {
