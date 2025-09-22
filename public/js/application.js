@@ -622,7 +622,7 @@ const Application = {
 
     // File upload handlers
     async handleIDUpload(file) {
-        Utils.showLoading('Processing ID document with AI...');
+        Utils.showLoading('Processing ID document with Afinda...');
 
         try {
             const formData = new FormData();
