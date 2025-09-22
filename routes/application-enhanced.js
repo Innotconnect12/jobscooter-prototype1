@@ -134,22 +134,24 @@ router.post('/step1/process-id', upload.single('id_document'), async (req, res) 
             });
         }
 
+        // Return mapped data safely
         // Prepare extracted data for account creation
-        const extractedFields = aiResult.extractedData.extractedFields;
+        
         
         // Return extracted data for user confirmation before account creation
+        // Return extracted data safely
         res.json({
             success: true,
             step: 1,
             phase: 'data_extracted',
             extractedData: {
-                first_name: extractedFields.names || '',
-                surname: extractedFields.surname || '',
-                id_number: extractedFields.idNumber || '',
-                country: extractedFields.nationality || 'South Africa',
-                date_of_birth: extractedFields.inferredDateOfBirth || extractedFields.dateOfBirth || '',
-                gender: extractedFields.inferredGender || extractedFields.sex || '',
-                confidence: aiResult.confidence,
+                first_name: aiResult.extractedData.first_name || '',
+                surname: aiResult.extractedData.surname || '',
+                id_number: aiResult.extractedData.id_number || '',
+                country: aiResult.extractedData.country || 'South Africa',
+                date_of_birth: aiResult.extractedData.date_of_birth || '',
+                gender: aiResult.extractedData.gender || '',
+                confidence: aiResult.confidence || 0,
                 manual_entry: false
             },
             message: 'ID data extracted successfully. Please review and confirm the information.',
@@ -594,7 +596,7 @@ async function updateTrafficLightScore(applicantId, db) {
             completionPercentage: applicant.completion_percentage
         };
 
-        const trafficLightResult = aService.generateTrafficLightScore(profileData);
+        const trafficLightResult = aiService.generateTrafficLightScore(profileData);
 
         // Update traffic light scores table
         await new Promise((resolve, reject) => {
