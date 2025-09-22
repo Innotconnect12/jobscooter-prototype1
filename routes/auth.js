@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const AccountService = require('../services/account-service');
+const redisClient = require('../config/redis');
 
 const accountService = new AccountService();
 const router = express.Router();
@@ -18,20 +19,35 @@ const generateToken = (user) => {
     );
 };
 
-// Middleware to authenticate JWT token
-const authenticateToken = (req, res, next) => {
+// Middleware to authenticate JWT token with Redis blacklist check
+const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader?.split(' ')[1];
 
     if (!token) return res.status(401).json({ error: 'Access token required' });
 
-    jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key', (err, user) => {
-        if (err) return res.status(403).json({ error: 'Invalid or expired token' });
-        req.user = user;
-        next();
-    });
-};
+    try {
+        let isBlacklisted = false;
 
+        try {
+            isBlacklisted = await redisClient.get(`bl_${token}`);
+        } catch (redisErr) {
+            console.warn('Redis unavailable, skipping blacklist check', redisErr);
+            // Fail-safe: allow authentication if Redis is down
+        }
+
+        if (isBlacklisted) return res.status(403).json({ error: 'Token has been revoked' });
+
+        jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key', (err, user) => {
+            if (err) return res.status(403).json({ error: 'Invalid or expired token' });
+            req.user = user;
+            next();
+        });
+    } catch (err) {
+        console.error('Auth middleware error:', err);
+        return res.status(500).json({ error: 'Authentication failed' });
+    }
+};
 // Create account endpoint
 router.post('/create-account', async (req, res) => {
     const db = getDb(req);
@@ -57,32 +73,31 @@ router.post('/login', async (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
     try {
-        const [user] = await db.promise().query(
+        const [users] = await db.promise().query(
             'SELECT * FROM applicants WHERE username = ? OR email = ?',
             [username, username]
         );
 
-        if (!user || !user.length) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!users.length) return res.status(401).json({ error: 'Invalid credentials' });
 
-        const foundUser = user[0];
-        const isValidPassword = await bcrypt.compare(password, foundUser.password_hash);
-
+        const user = users[0];
+        const isValidPassword = await bcrypt.compare(password, user.password_hash);
         if (!isValidPassword) return res.status(401).json({ error: 'Invalid credentials' });
 
         // Update last login
-        await db.promise().query('UPDATE applicants SET updated_at = NOW() WHERE id = ?', [foundUser.id]);
+        await db.promise().query('UPDATE applicants SET updated_at = NOW() WHERE id = ?', [user.id]);
 
         // Generate token
-        const token = generateToken(foundUser);
+        const token = generateToken(user);
 
         // Get public profile slug
         const [profileResults] = await db.promise().query(
             'SELECT profile_url_slug FROM public_profiles WHERE applicant_id = ?',
-            [foundUser.id]
+            [user.id]
         );
         const profileSlug = profileResults[0]?.profile_url_slug || null;
 
-        const { password_hash, ...userWithoutPassword } = foundUser;
+        const { password_hash, ...userWithoutPassword } = user;
 
         res.json({
             message: 'Login successful',
@@ -189,10 +204,31 @@ router.post('/update-password', authenticateToken, async (req, res) => {
     }
 });
 
-// Logout endpoint
+// Logout endpoint with Redis JWT blacklisting JWT blacklisting (fail-safe)
 router.post('/logout', authenticateToken, async (req, res) => {
-    // For production, consider token blacklisting
-    res.json({ message: 'Logged out successfully' });
+    try {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader?.split(' ')[1];
+
+        if (token) {
+            const decoded = jwt.decode(token);
+            const exp = decoded.exp; // in seconds
+            const ttl = exp - Math.floor(Date.now() / 1000);
+            if (ttl > 0) {
+                try {
+                    await redisClient.set(`bl_${token}`, token, { EX: ttl });
+                } catch (redisErr) {
+                    console.warn('Redis unavailable, cannot blacklist token', redisErr);
+                    // Fail-safe: token will not be blacklisted, but user logout continues
+                }
+            }
+        }
+
+        res.json({ message: 'Logged out successfully' });
+    } catch (err) {
+        console.error('Logout error:', err);
+        res.status(500).json({ error: 'Failed to logout' });
+    }
 });
 
 module.exports = router;
