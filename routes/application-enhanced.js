@@ -6,10 +6,12 @@ const { v4: uuidv4 } = require('uuid');
 const AIService = require('../services/ai-service');
 const AccountService = require('../services/account-service');
 const EmailService = require('../services/email-service');
+const AffindaService = require('../services/affinda-service')
 const router = express.Router();
 
 // Initialize services
 const aiService = new AIService();
+const 
 const accountService = new AccountService();
 
 // Middleware to get database
@@ -445,7 +447,7 @@ router.post('/step2/languages', authenticateToken, async (req, res) => {
             const certResult = await affindaService.processCertificate(german_certificate.filePath);
             
             if (certResult.success) {
-                const germanVerification = await aiService.verifyGermanLanguageCertificate(certResult.certificateData);
+                const germanVerification = await affindaService.verifyGermanLanguageCertificate(certResult.certificateData);
                 germanVerified = germanVerification.isValid;
                 germanCertificateData = {
                     ...certResult.certificateData,
@@ -592,7 +594,7 @@ async function updateTrafficLightScore(applicantId, db) {
             completionPercentage: applicant.completion_percentage
         };
 
-        const trafficLightResult = aiService.generateTrafficLightScore(profileData);
+        const trafficLightResult = aService.generateTrafficLightScore(profileData);
 
         // Update traffic light scores table
         await new Promise((resolve, reject) => {
