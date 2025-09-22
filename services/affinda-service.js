@@ -18,8 +18,8 @@ class AffindaService {
             const doc = await this.client.createDocument({
                 file: fileStream,
                 workspace: this.workspaceId,
-                fileName
-                //documentType: "IDAndPassport"
+                fileName,
+                documentType: "ID and Passport"
             });
 
             const fields = doc.data?.extractedFields || {};
@@ -54,8 +54,8 @@ class AffindaService {
             const doc = await this.client.createDocument({
                 file: fileStream,
                 workspace: this.workspaceId,
-                fileName
-                //documentType: "Certificate"
+                fileName,
+                documentType: "Certificate"
             });
 
             return {
