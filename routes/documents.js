@@ -4,6 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const AIService = require('../services/ai-service');
+const AffindaService = require(../services/affinda-service);
+const affindaService = new AffindaService();
 const router = express.Router();
 
 // Initialize AI service
@@ -91,7 +93,7 @@ router.post('/process-id', upload.single('id_document'), async (req, res) => {
 
         // Use AI service for real document processing
         console.log('🤖 Processing ID document with AI service...');
-        const aiResult = await aiService.processIDDocument(filePath);
+        const aiResult = await affindaService.processIDDocument(filePath);
         
         // Delete the original ID document for security
         setTimeout(() => {
@@ -197,7 +199,7 @@ router.post('/certificates/upload', authenticateToken, upload.array('certificate
         for (const file of req.files) {
             // Use AI service for real certificate processing
             console.log('🎓 Processing certificate with AI service:', file.originalname);
-            const aiResult = await aiService.processCertificate(file.path);
+            const aiResult = await affindaService.processCertificate(file.path);
             
             let analysis;
             if (aiResult.success) {
