@@ -11,7 +11,7 @@ const router = express.Router();
 
 // Initialize services
 const aiService = new AIService();
-const 
+const affindaService = new AffindaService();
 const accountService = new AccountService();
 
 // Middleware to get database
