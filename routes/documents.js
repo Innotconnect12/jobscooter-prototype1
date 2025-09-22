@@ -91,17 +91,20 @@ router.post('/process-id', upload.single('id_document'), async (req, res) => {
         const filePath = req.file.path;
         const fileName = req.file.filename;
 
-        // Use AI service for real document processing
-        console.log('🤖 Processing ID document with AI service...');
-        const aiResult = await affindaService.processIDDocument(filePath);
-        
-        // Delete the original ID document for security
-        setTimeout(() => {
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                console.log('🔒 ID document deleted for security');
-            }
-        }, 5000); // Delete after 5 seconds
+        // Use Affinda service for real document processing
+console.log('🤖 Processing ID document with AI service...');
+const aiResult = await affindaService.processIDDocument(filePath);
+
+// Delete the original ID document for security immediately after processing
+try {
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log('🔒 ID document deleted for security');
+    }
+} catch (err) {
+    console.error('Error deleting ID document:', err);
+}
+
         
         if (!aiResult.success) {
             return res.status(422).json({
