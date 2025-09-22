@@ -111,7 +111,7 @@ router.post('/step1/process-id', upload.single('id_document'), async (req, res) 
 
         // Process ID document with AI
         console.log('🤖 Processing ID document with AI...');
-        const aiResult = await aiService.processIDDocument(filePath);
+        const aiResult = await affindaService.processIDDocument(filePath);
         
         // Clean up ID file immediately for security
         setTimeout(() => {
@@ -442,7 +442,7 @@ router.post('/step2/languages', authenticateToken, async (req, res) => {
             console.log('🇩🇪 Verifying German certificate...');
             
             // Process German certificate with AI
-            const certResult = await aiService.processCertificate(german_certificate.filePath);
+            const certResult = await affindaService.processCertificate(german_certificate.filePath);
             
             if (certResult.success) {
                 const germanVerification = await aiService.verifyGermanLanguageCertificate(certResult.certificateData);
