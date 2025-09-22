@@ -19,16 +19,16 @@ class AffindaService {
                 file: fileStream,
                 workspace: this.workspaceId,
                 fileName,
-                //documentType: "IDAndPassport"
+                documentType: "IDAndPassport"
             });
 
             const fields = doc.data?.extractedFields || {};
 
             // Defensive mapping for ID and Passport
             const mappedData = {
-                first_name: fields.firstName || fields.givenNames || '',
-                surname: fields.lastName || fields.surname || '',
-                id_number: fields.idNumber || fields.identityNumber || '',
+                first_name: fields.givenNames || '',
+                surname: fields.surname || '',
+                id_number: fields.identityNumber || '',
                 country: fields.nationality || fields.countryCode || '',
                 date_of_birth: fields.dateOfBirth || '',
                 gender: fields.sex || ''
@@ -55,7 +55,7 @@ class AffindaService {
                 file: fileStream,
                 workspace: this.workspaceId,
                 fileName,
-                //documentType: "Certificate"
+                documentType: "Certificate"
             });
 
             return {
