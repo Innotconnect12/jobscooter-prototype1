@@ -6,7 +6,6 @@ const { v4: uuidv4 } = require('uuid');
 const AIService = require('../services/ai-service');
 const AccountService = require('../services/account-service');
 const EmailService = require('../services/email-service');
-const verificationToken = uuidv4(); // generate a unique token
 const router = express.Router();
 
 // Initialize services
@@ -184,7 +183,6 @@ router.post('/step1/confirm-and-create-account', async (req, res) => {
 
         console.log('👤 Creating account with confirmed data...');
 
-        // Validate required fields
         if (!first_name || !surname || !email || !phone || !id_number) {
             return res.status(400).json({
                 error: 'Missing required fields',
@@ -194,6 +192,9 @@ router.post('/step1/confirm-and-create-account', async (req, res) => {
         }
 
         const db = getDb(req);
+
+        // Generate a unique verification token
+        const verificationToken = uuidv4();
 
         // Create account using account service
         const accountResult = await accountService.createAccount({
@@ -206,7 +207,8 @@ router.post('/step1/confirm-and-create-account', async (req, res) => {
             date_of_birth,
             gender,
             confidence: confidence || 0.8,
-            manual_entry
+            manual_entry,
+            verificationToken // pass it here to store in DB
         }, db);
 
         if (!accountResult.success) {
@@ -216,17 +218,16 @@ router.post('/step1/confirm-and-create-account', async (req, res) => {
             });
         }
 
-        // Generate login token
         const token = accountService.generateJWTToken(accountResult.user);
 
         console.log('✅ Account created successfully:', accountResult.user.username);
 
-        // Send welcome email asynchronously. This is code I have added
+        // Send welcome email with verification link
         try {
             await EmailService.sendWelcomeEmail(
                 accountResult.user.email,
                 accountResult.credentials,
-                accountResult. user.verificationToken // ensure you generate/store this token
+                verificationToken // pass token for email link
             );
             accountResult.emailSent = true;
         } catch (err) {
@@ -238,7 +239,7 @@ router.post('/step1/confirm-and-create-account', async (req, res) => {
             success: true,
             step: 1,
             phase: 'account_created',
-            message: 'Account created successfully! Please check your email for login credentials.',
+            message: 'Account created successfully! Please check your email for login credentials and verification link.',
             user: {
                 ...accountResult.user,
                 token
@@ -277,7 +278,6 @@ router.post('/step1/manual-entry', async (req, res) => {
 
         console.log('✋ Processing manual ID entry...');
 
-        // Validate required fields
         if (!first_name || !surname || !email || !phone || !id_number || !country) {
             return res.status(400).json({
                 error: 'Missing required fields',
@@ -287,6 +287,9 @@ router.post('/step1/manual-entry', async (req, res) => {
         }
 
         const db = getDb(req);
+
+        // Generate a unique verification token
+        const verificationToken = uuidv4();
 
         // Create account with manual entry
         const accountResult = await accountService.createAccount({
@@ -298,8 +301,9 @@ router.post('/step1/manual-entry', async (req, res) => {
             id_number,
             date_of_birth,
             gender,
-            confidence: 1.0, // Manual entry is 100% accurate
-            manual_entry: true
+            confidence: 1.0,
+            manual_entry: true,
+            verificationToken // store it in DB
         }, db);
 
         if (!accountResult.success) {
@@ -309,17 +313,16 @@ router.post('/step1/manual-entry', async (req, res) => {
             });
         }
 
-        // Generate login token
         const token = accountService.generateJWTToken(accountResult.user);
 
         console.log('✅ Manual account created successfully:', accountResult.user.username);
 
-        // Send welcome email asynchronously. Code I added
+        // Send welcome email with verification link
         try {
             await EmailService.sendWelcomeEmail(
                 accountResult.user.email,
                 accountResult.credentials,
-                accountResult.user.verificationToken,
+                verificationToken // include token for email link
             );
             accountResult.emailSent = true;
         } catch (err) {
@@ -332,7 +335,7 @@ router.post('/step1/manual-entry', async (req, res) => {
             step: 1,
             phase: 'account_created',
             method: 'manual_entry',
-            message: 'Account created successfully with manual entry! Please check your email for login credentials.',
+            message: 'Account created successfully with manual entry! Please check your email for login credentials and verification link.',
             user: {
                 ...accountResult.user,
                 token
